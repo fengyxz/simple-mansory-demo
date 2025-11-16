@@ -133,8 +133,8 @@ export async function generateCoverForFileKey(
 export async function generateCoverForAll() {
   const all = await fetchAllFileKeys();
   for (const item of all) {
-    // if (!item.cover_url) {
-    await generateCoverForFileKey(item.file_key, true);
-    // }
+    if (!item.cover_url) {
+      await generateCoverForFileKey(item.file_key);
+    }
   }
 }
