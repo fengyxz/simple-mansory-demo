@@ -89,7 +89,8 @@ export function VirtualScrollPage() {
     if (typeof window === "undefined") return;
     const hasTouch =
       "ontouchstart" in window ||
-      (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 0;
+      (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! >
+        0;
     setIsTouchDevice(Boolean(hasTouch));
   }, []);
 
@@ -602,10 +603,7 @@ export function VirtualScrollPage() {
               <h1 className="text-xl md:text-3xl font-bold text-slate-900">
                 视频无限滚动列表
               </h1>
-              <p className="mt-0.5 md:mt-1 text-sm md:text-base text-slate-600">
-                自适应虚拟化：{shouldVirtualize ? "已启用" : "未启用"} (阈值:{" "}
-                {VIRTUALIZATION_THRESHOLD})
-              </p>
+
               {import.meta.env.DEV && (
                 <p className="text-xs md:text-sm text-slate-400">
                   当前滚动速度：{scrollSpeed.toFixed(2)} px/s
