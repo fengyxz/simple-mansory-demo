@@ -12,6 +12,11 @@ export type FileAsset = {
   created_at: string;
 };
 
+export type FileKeysCursor = {
+  created_at: string;
+  file_key: string;
+} | null;
+
 const TABLE_NAME = "file_assets";
 
 export async function saveFileKey({
@@ -74,6 +79,57 @@ export async function fetchFileKeysPaginated(
   return {
     data: data ?? [],
     total: count ?? 0,
+  };
+}
+
+export async function fetchFileKeysByCursor(
+  cursor: FileKeysCursor,
+  pageSize: number
+): Promise<{
+  data: FileAsset[];
+  total: number;
+  cursor: FileKeysCursor;
+}> {
+  const limit = Math.max(pageSize, 1);
+
+  let query = supabase
+    .from(TABLE_NAME)
+    .select("file_key, media_url, cover_url, created_at", {
+      count: "exact",
+    })
+    .order("created_at", { ascending: false })
+    .order("file_key", { ascending: false })
+    .limit(limit);
+
+  if (cursor && cursor.created_at && cursor.file_key) {
+    const { created_at, file_key } = cursor;
+    // 复合光标：
+    // where created_at < cursor_created_at
+    //   or (created_at = cursor_created_at and file_key < cursor_file_key)
+    query = query.or(
+      `and(created_at.lt.${created_at}),and(created_at.eq.${created_at},file_key.lt.${file_key})`
+    );
+  }
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const items = data ?? [];
+  const nextCursor =
+    items.length > 0
+      ? {
+          created_at: items[items.length - 1]!.created_at,
+          file_key: items[items.length - 1]!.file_key,
+        }
+      : null;
+
+  return {
+    data: items,
+    total: count ?? 0,
+    cursor: nextCursor,
   };
 }
 

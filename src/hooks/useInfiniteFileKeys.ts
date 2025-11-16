@@ -1,5 +1,8 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { fetchFileKeysPaginated } from "../services/fileKeyService";
+import {
+  fetchFileKeysByCursor,
+  type FileKeysCursor,
+} from "../services/fileKeyService";
 
 const PAGE_SIZE = 5; // 每页5条数据
 
@@ -10,23 +13,21 @@ const PAGE_SIZE = 5; // 每页5条数据
 export function useInfiniteFileKeys() {
   return useInfiniteQuery({
     queryKey: ["fileKeys", "infinite"],
-    queryFn: ({ pageParam = 1 }) => {
-      return fetchFileKeysPaginated(pageParam, PAGE_SIZE);
+    queryFn: ({ pageParam }) => {
+      return fetchFileKeysByCursor(
+        (pageParam as FileKeysCursor | undefined) ?? null,
+        PAGE_SIZE
+      );
     },
-    getNextPageParam: (lastPage, allPages) => {
-      // 计算已加载的总数据量
-      const loadedCount = allPages.reduce((sum, page) => sum + page.data.length, 0);
-      
-      // 如果已加载数量小于总数，返回下一页页码
-      if (loadedCount < lastPage.total) {
-        return allPages.length + 1;
+    getNextPageParam: (lastPage) => {
+      // 如果这一页数量少于 PAGE_SIZE，说明已经没有更多数据
+      if (!lastPage.data || lastPage.data.length < PAGE_SIZE) {
+        return undefined;
       }
-      
-      // 否则返回 undefined，表示没有更多数据
-      return undefined;
+      // 使用服务端返回的下一页光标
+      return lastPage.cursor ?? undefined;
     },
-    initialPageParam: 1,
+    initialPageParam: null as FileKeysCursor | null,
     staleTime: 2 * 60 * 1000, // 2分钟缓存
   });
 }
-
