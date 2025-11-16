@@ -43,7 +43,11 @@ export const VideoCard = memo(function VideoCard({
               alt={`${video.file_key} 封面`}
               className="h-full w-full object-cover"
               externalIsLoaded={isImageLoaded}
-              onLoad={() => onImageLoad?.(video.cover_url)}
+              onLoad={() => {
+                if (video.cover_url) {
+                  onImageLoad?.(video.cover_url);
+                }
+              }}
             />
           </div>
         ) : (
