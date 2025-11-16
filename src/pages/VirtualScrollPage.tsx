@@ -82,16 +82,13 @@ export function VirtualScrollPage() {
       : "加载失败，请稍后重试。"
     : null;
 
-  // 是否为触摸设备（移动端），用于关闭虚拟化，减少抖动
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const hasTouch =
+  // 检测是否为触摸设备（移动端）- 使用 useMemo 避免 effect 中的 setState
+  const isTouchDevice = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return (
       "ontouchstart" in window ||
-      (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! >
-        0;
-    setIsTouchDevice(Boolean(hasTouch));
+      (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 0
+    );
   }, []);
 
   // 决定是否使用虚拟化：移动端关闭虚拟化，避免滚动抖动
