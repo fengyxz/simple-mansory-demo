@@ -82,8 +82,20 @@ export function VirtualScrollPage() {
       : "加载失败，请稍后重试。"
     : null;
 
-  // 决定是否使用虚拟化
-  const shouldVirtualize = allVideos.length > VIRTUALIZATION_THRESHOLD;
+  // 是否为触摸设备（移动端），用于关闭虚拟化，减少抖动
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hasTouch =
+      "ontouchstart" in window ||
+      (navigator as Navigator & { maxTouchPoints?: number }).maxTouchPoints! > 0;
+    setIsTouchDevice(Boolean(hasTouch));
+  }, []);
+
+  // 决定是否使用虚拟化：移动端关闭虚拟化，避免滚动抖动
+  const shouldVirtualize =
+    !isTouchDevice && allVideos.length > VIRTUALIZATION_THRESHOLD;
 
   // 计算当前实际列数（基于第一行元素的 offsetTop），并做节流
   const measureColumns = useCallback(() => {
@@ -178,13 +190,15 @@ export function VirtualScrollPage() {
       if (deltaTime > 0) {
         const speed = Math.abs(deltaY) / (deltaTime / 1000);
         setScrollSpeed(speed);
-        console.log(
-          `📏 滚动速度: ${speed.toFixed(
-            2
-          )} px/s (方向: ${direction}, Δy=${deltaY.toFixed(
-            2
-          )} px, Δt=${deltaTime.toFixed(2)} ms)`
-        );
+        if (import.meta.env.DEV) {
+          console.log(
+            `📏 滚动速度: ${speed.toFixed(
+              2
+            )} px/s (方向: ${direction}, Δy=${deltaY.toFixed(
+              2
+            )} px, Δt=${deltaTime.toFixed(2)} ms)`
+          );
+        }
       }
 
       lastScrollTop = currentScrollTop;
@@ -249,11 +263,13 @@ export function VirtualScrollPage() {
 
       const speed = Math.abs(deltaY) / (deltaTime / 1000); // px/s
       setScrollSpeed(speed);
-      console.log(
-        `👆 手势速度: ${speed.toFixed(2)} px/s (Δy=${deltaY.toFixed(
-          2
-        )} px, Δt=${deltaTime.toFixed(2)} ms)`
-      );
+      if (import.meta.env.DEV) {
+        console.log(
+          `👆 手势速度: ${speed.toFixed(2)} px/s (Δy=${deltaY.toFixed(
+            2
+          )} px, Δt=${deltaTime.toFixed(2)} ms)`
+        );
+      }
 
       const distanceToBottom =
         container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -268,9 +284,11 @@ export function VirtualScrollPage() {
         !isFetchingNextPage;
 
       if (shouldTriggerPull) {
-        console.log(
-          `🪝 上拉高度 ${currentPullDistance.toFixed(0)}px，松手加载下一页`
-        );
+        if (import.meta.env.DEV) {
+          console.log(
+            `🪝 上拉高度 ${currentPullDistance.toFixed(0)}px，松手加载下一页`
+          );
+        }
         fetchNextPage();
       } else if (
         atBottom &&
@@ -279,11 +297,13 @@ export function VirtualScrollPage() {
         hasNextPage &&
         !isFetchingNextPage
       ) {
-        console.log(
-          `⚡️ 手势速度 ${speed.toFixed(
-            0
-          )} px/s，判定为强力滑到底，触发加载下一页`
-        );
+        if (import.meta.env.DEV) {
+          console.log(
+            `⚡️ 手势速度 ${speed.toFixed(
+              0
+            )} px/s，判定为强力滑到底，触发加载下一页`
+          );
+        }
         fetchNextPage();
       }
 
@@ -574,21 +594,23 @@ export function VirtualScrollPage() {
       </div>
       <div
         ref={scrollContainerRef}
-        className="h-[calc(100vh-80px)] overflow-y-auto px-4 py-10"
+        className="h-[calc(100vh-80px)] overflow-y-auto px-4 py-4 md:py-10"
       >
-        <div className="mx-auto px-24 space-y-6">
-          <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto px-4 md:px-24 space-y-4 md:space-y-6">
+          <header className="flex flex-col gap-2 md:gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">
+              <h1 className="text-xl md:text-3xl font-bold text-slate-900">
                 视频无限滚动列表
               </h1>
-              <p className="mt-1 text-base text-slate-600">
+              <p className="mt-0.5 md:mt-1 text-sm md:text-base text-slate-600">
                 自适应虚拟化：{shouldVirtualize ? "已启用" : "未启用"} (阈值:{" "}
                 {VIRTUALIZATION_THRESHOLD})
               </p>
-              <p className="text-sm text-slate-400">
-                当前滚动速度：{scrollSpeed.toFixed(2)} px/s
-              </p>
+              {import.meta.env.DEV && (
+                <p className="text-xs md:text-sm text-slate-400">
+                  当前滚动速度：{scrollSpeed.toFixed(2)} px/s
+                </p>
+              )}
             </div>
           </header>
 

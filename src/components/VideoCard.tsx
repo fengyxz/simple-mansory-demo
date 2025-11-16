@@ -30,6 +30,10 @@ export const VideoCard = memo(function VideoCard({
         className="relative aspect-video w-full overflow-hidden rounded-sm bg-slate-200"
         onMouseEnter={() => onHoverStart(video)}
         onMouseLeave={() => onHoverEnd(video.file_key)}
+        style={{
+          WebkitTransform: "translate3d(0,0,0)",
+          transform: "translate3d(0,0,0)",
+        }}
       >
         {/* 封面图片 - 始终在 DOM 中 */}
         {video.cover_url ? (
@@ -37,6 +41,10 @@ export const VideoCard = memo(function VideoCard({
             className={`absolute inset-0 ${
               isActive && mediaSrc ? "invisible" : "visible"
             }`}
+            style={{
+              WebkitBackfaceVisibility: "hidden",
+              backfaceVisibility: "hidden",
+            }}
           >
             <LazyImage
               src={video.cover_url}
@@ -62,7 +70,13 @@ export const VideoCard = memo(function VideoCard({
 
         {/* 视频 - 只在激活时显示 */}
         {isActive && mediaSrc && (
-          <div className="absolute inset-0">
+          <div
+            className="absolute inset-0"
+            style={{
+              WebkitBackfaceVisibility: "hidden",
+              backfaceVisibility: "hidden",
+            }}
+          >
             <video
               src={mediaSrc}
               muted
@@ -71,6 +85,10 @@ export const VideoCard = memo(function VideoCard({
               controls
               playsInline
               className="h-full w-full object-cover"
+              style={{
+                WebkitTransform: "translate3d(0,0,0)",
+                transform: "translate3d(0,0,0)",
+              }}
             />
           </div>
         )}
